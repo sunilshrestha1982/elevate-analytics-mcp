@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { pinoHttp } from 'pino-http';
 import type { IncomingMessage } from 'node:http';
+import type { Request } from 'express';
 import { randomUUID } from 'node:crypto';
 import { healthRouter } from './routes/health.js';
 import { userRouter } from './routes/users.js';
@@ -28,7 +29,7 @@ app.use(
   pinoHttp({
     logger: getPinoLogger(),
     genReqId: (req) => req.id ?? randomUUID(),
-    customProps: (req) => ({
+    customProps: (req: Request) => ({
       requestId: req.id,
       authenticatedUserEmail: req.user?.email ?? req.auth?.email,
     }),
@@ -44,7 +45,7 @@ app.use((req, res, next) => {
     attributes: {
       'http.method': req.method,
       'http.route': req.path,
-      'http.request_id': req.id ?? '',
+      'http.request_id': typeof req.id === 'string' ? req.id : '',
     },
   });
   const start = process.hrtime.bigint();

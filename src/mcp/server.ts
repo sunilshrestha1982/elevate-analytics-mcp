@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'node:http';
 import { pinoHttp } from 'pino-http';
 import type { IncomingMessage } from 'node:http';
+import type { Request } from 'express';
 import { randomUUID } from 'node:crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createRouter } from './router.js';
@@ -39,7 +40,7 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
     pinoHttp({
       logger: getPinoLogger(),
       genReqId: (req) => req.id ?? randomUUID(),
-      customProps: (req) => ({
+      customProps: (req: Request) => ({
         requestId: req.id,
         authenticatedUserEmail: req.auth?.email,
       }),
@@ -51,7 +52,7 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
       attributes: {
         'http.method': req.method,
         'http.route': req.path,
-        'http.request_id': req.id ?? '',
+        'http.request_id': typeof req.id === 'string' ? req.id : '',
       },
     });
     const start = process.hrtime.bigint();

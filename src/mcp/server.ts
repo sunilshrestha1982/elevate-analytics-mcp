@@ -14,6 +14,7 @@ import { createContextMiddleware } from './context.js';
 import { createErrorHandler } from './errors.js';
 import { createLogger } from './logger.js';
 import { applySecurityMiddleware } from '../middleware/security.js';
+import { createMcpApiKeyAuthMiddleware } from '../middleware/mcpApiKeyAuth.js';
 import { getMetricsRegistry, observeRequestDuration } from '../lib/metrics.js';
 import { env } from '../config/env.js';
 import { getPinoLogger } from '../lib/logger.js';
@@ -29,6 +30,7 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
   const resourceRegistry = createResourceRegistry(server, logger);
   const promptRegistry = createPromptRegistry(server, logger);
   const authMiddleware = createAuthMiddleware(logger);
+  const apiKeyAuthMiddleware = createMcpApiKeyAuthMiddleware();
   const contextMiddleware = createContextMiddleware(logger);
 
   toolRegistry.registerAll();
@@ -67,22 +69,7 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
   });
 
   app.use(express.json({ limit: '2mb' }));
-  app.use((req, res, next) => {
-    const isPublic = req.path === '/health' || req.path === '/ready' || req.path === '/live';
-    if (isPublic) return next();
-
-    // Fail closed when MCP_API_KEY is not configured for protected endpoints.
-    if (!env.MCP_API_KEY) {
-      return res.status(500).json({ error: 'MCP_API_KEY is not configured' });
-    }
-
-    const apiKey = req.get('x-api-key') ?? req.get('authorization')?.replace(/^Bearer\s+/i, '');
-    if (apiKey !== env.MCP_API_KEY) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    return next();
-  });
+  app.use(apiKeyAuthMiddleware);
   app.use(authMiddleware);
   app.use(contextMiddleware);
   app.use('/mcp', createRouter({ server, toolRegistry, resourceRegistry, promptRegistry, logger }));

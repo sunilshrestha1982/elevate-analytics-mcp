@@ -6,23 +6,25 @@ describe('MCP server', () => {
     vi.unstubAllEnvs();
   });
 
-  it('serves public health/readiness/liveness endpoints', async () => {
+  it('serves public health/readiness/liveness/version endpoints', async () => {
     const { createMcpApp } = await import('./server.js');
     const { app } = createMcpApp();
     const health = await request(app).get('/health');
     const ready = await request(app).get('/ready');
     const live = await request(app).get('/live');
+    const version = await request(app).get('/version');
     expect(health.status).toBe(200);
     expect(ready.status).toBe(200);
     expect(live.status).toBe(200);
+    expect(version.status).toBe(200);
   });
 
-  it('fails closed for protected endpoints when MCP_API_KEY is not configured', async () => {
+  it('returns 401 for protected endpoints when MCP_API_KEY is not configured', async () => {
     const { createMcpApp } = await import('./server.js');
     const { app } = createMcpApp();
     const response = await request(app).get('/mcp');
-    expect(response.status).toBe(500);
-    expect(response.body.error).toBe('MCP_API_KEY is not configured');
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe('Unauthorized');
   });
 
   it('protects MCP endpoints with API key when MCP_API_KEY is configured', async () => {

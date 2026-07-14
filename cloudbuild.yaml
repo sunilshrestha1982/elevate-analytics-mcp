@@ -1,0 +1,47 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _SERVICE_NAME: elevate-analytics-mcp
+  _REGION: us-central1
+  _REPOSITORY: elevate-analytics
+  _PLATFORM: managed
+
+steps:
+  - name: node:22
+    entrypoint: bash
+    args:
+      - -lc
+      - |
+        npm ci
+        npm run lint
+        npm run build
+        npm test
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - --region=${_REGION}
+      - --platform=${_PLATFORM}
+      - --no-allow-unauthenticated
+      - --set-secrets=JWT_SECRET=jwt-secret:latest,SESSION_SECRET=session-secret:latest,ENCRYPTION_KEY=encryption-key:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,MCP_API_KEY=mcp-api-key:latest
+      - --set-env-vars=NODE_ENV=production
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA

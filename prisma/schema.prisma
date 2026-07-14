@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  name            String?
+  avatar          String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  googleAccounts  GoogleAccount[]
+}
+
+model GoogleAccount {
+  id                     Int                      @id @default(autoincrement())
+  userId                 Int
+  googleUserId           String                   @unique
+  email                  String
+  refreshToken           String?
+  accessToken            String?
+  expiryDate             DateTime?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  user                   User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  searchConsoleProperties SearchConsoleProperty[]
+  ga4Properties          GA4Property[]
+
+  @@index([userId])
+}
+
+model SearchConsoleProperty {
+  id               Int            @id @default(autoincrement())
+  googleAccountId  Int
+  siteUrl          String
+  permissionLevel  String
+  createdAt        DateTime       @default(now())
+  googleAccount    GoogleAccount  @relation(fields: [googleAccountId], references: [id], onDelete: Cascade)
+
+  @@index([googleAccountId])
+}
+
+model GA4Property {
+  id               Int           @id @default(autoincrement())
+  googleAccountId  Int
+  propertyId       String
+  displayName      String
+  createdAt        DateTime      @default(now())
+  googleAccount    GoogleAccount @relation(fields: [googleAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([googleAccountId, propertyId])
+  @@index([googleAccountId])
+}
+
+model OAuthSession {
+  id            Int      @id @default(autoincrement())
+  state         String   @unique
+  codeVerifier  String?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

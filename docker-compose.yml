@@ -1,0 +1,43 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: elevate_analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    command: node dist/server.js
+    depends_on:
+      - postgres
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      APP_VERSION: 0.1.0
+      LOG_LEVEL: info
+      CORS_ORIGIN: http://localhost:3000
+      TRUST_PROXY: 'true'
+      RATE_LIMIT_PER_MINUTE: 300
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/elevate_analytics?schema=public
+      JWT_SECRET: replace-with-a-long-random-secret
+      SESSION_SECRET: replace-with-a-long-random-secret
+      ENCRYPTION_KEY: replace-with-a-32-character-key
+    volumes:
+      - .:/app
+      - /app/node_modules
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/live']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

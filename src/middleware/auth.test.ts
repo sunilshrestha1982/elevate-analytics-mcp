@@ -74,7 +74,7 @@ describe('auth middleware', () => {
   it('accepts a valid JWT for authenticated routes', () => {
     const res = mockRes();
     const next = vi.fn();
-    const token = jwt.sign({ sub: 1, email: 'a@example.com', googleUserId: 'google-user' }, '12345678901234567890123456789012');
+    const token = jwt.sign({ sub: 1, email: 'a@example.com', googleUserId: 'google-user' }, '12345678901234567890123456789012', { algorithm: 'HS256', issuer: 'elevate-analytics-mcp', audience: 'elevate-analytics-mcp' });
     requireAuth({ cookies: { auth_token: token } } as any, res as any, next);
     expect(next).toHaveBeenCalled();
   });

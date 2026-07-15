@@ -1,0 +1,171 @@
+artifacts:
+  images:
+  - us-central1-docker.pkg.dev/elevate-analytics-mcp/elevate-analytics/elevate-analytics-mcp:latest
+createTime: '2026-07-15T13:32:01.746545224Z'
+failureInfo:
+  detail: 'Build step failure: build step 4 "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    failed: step exited with non-zero status: 1'
+  type: USER_BUILD_STEP
+finishTime: '2026-07-15T13:36:41.713782Z'
+id: 107e6cdf-182e-41bc-9893-9c5270526ce7
+images:
+- us-central1-docker.pkg.dev/elevate-analytics-mcp/elevate-analytics/elevate-analytics-mcp:latest
+logUrl: https://console.cloud.google.com/cloud-build/builds/107e6cdf-182e-41bc-9893-9c5270526ce7?project=398620554089
+name: projects/398620554089/locations/global/builds/107e6cdf-182e-41bc-9893-9c5270526ce7
+options:
+  logging: CLOUD_LOGGING_ONLY
+  pool: {}
+projectId: elevate-analytics-mcp
+queueTtl: 3600s
+results:
+  buildStepImages:
+  - sha256:5647be709086c696ff32edaaf1c70cd26d1da6ab2b39c32f3c7b4c4a31957e37
+  - sha256:934ae3cc409975d61148e7aa3705ac3676f65b8ff17ad883f731881d77c9b92d
+  - sha256:1a2d12db4fd104729db11e4ab2422c4fcb81ea61c656f57451295b3ff3c77abd
+  - sha256:1a2d12db4fd104729db11e4ab2422c4fcb81ea61c656f57451295b3ff3c77abd
+  - sha256:934ae3cc409975d61148e7aa3705ac3676f65b8ff17ad883f731881d77c9b92d
+  - ''
+  buildStepOutputs:
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  - ''
+  buildStepResults:
+    ensure-artifact-registry: {}
+serviceAccount: projects/elevate-analytics-mcp/serviceAccounts/398620554089-compute@developer.gserviceaccount.com
+source:
+  storageSource:
+    bucket: elevate-analytics-mcp_cloudbuild
+    generation: '1784122321205682'
+    object: source/1784122318.089091-1fbb2fa2ea3746259c73a078eb53c461.tgz
+sourceProvenance:
+  fileHashes:
+    gs://elevate-analytics-mcp_cloudbuild/source/1784122318.089091-1fbb2fa2ea3746259c73a078eb53c461.tgz#1784122321205682:
+      fileHash:
+      - type: MD5
+        value: Ema9Bl9J1ARnBTPSAQQO8g==
+      - type: SHA256
+        value: N1tsZQKR4t0KcNe7YWc4ABVyA9LW5d0eJxrcoxaQ4Ok=
+  resolvedStorageSource:
+    bucket: elevate-analytics-mcp_cloudbuild
+    generation: '1784122321205682'
+    object: source/1784122318.089091-1fbb2fa2ea3746259c73a078eb53c461.tgz
+startTime: '2026-07-15T13:32:02.592683954Z'
+status: FAILURE
+steps:
+- args:
+  - -lc
+  - |
+    npm ci
+    npm run lint
+    npm run build
+    npm test
+  entrypoint: bash
+  name: node:22
+  pullTiming:
+    endTime: '2026-07-15T13:32:33.291146799Z'
+    startTime: '2026-07-15T13:32:07.729415052Z'
+  status: SUCCESS
+  timing:
+    endTime: '2026-07-15T13:33:17.598986143Z'
+    startTime: '2026-07-15T13:32:07.729415052Z'
+- args:
+  - -lc
+  - |
+    gcloud artifacts repositories describe "elevate-analytics" \
+      --location="us-central1" >/dev/null 2>&1 || \
+    gcloud artifacts repositories create "elevate-analytics" \
+      --repository-format=docker \
+      --location="us-central1" \
+      --description="Artifact Registry for elevate-analytics-mcp" \
+      --quiet
+  entrypoint: bash
+  id: ensure-artifact-registry
+  name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  pullTiming:
+    endTime: '2026-07-15T13:34:24.465388366Z'
+    startTime: '2026-07-15T13:33:17.599091624Z'
+  status: SUCCESS
+  timing:
+    endTime: '2026-07-15T13:34:26.819577957Z'
+    startTime: '2026-07-15T13:33:17.599091624Z'
+- args:
+  - build
+  - -t
+  - us-central1-docker.pkg.dev/elevate-analytics-mcp/elevate-analytics/elevate-analytics-mcp:latest
+  - .
+  name: gcr.io/cloud-builders/docker
+  pullTiming:
+    endTime: '2026-07-15T13:34:26.826165137Z'
+    startTime: '2026-07-15T13:34:26.819663729Z'
+  status: SUCCESS
+  timing:
+    endTime: '2026-07-15T13:35:53.375161936Z'
+    startTime: '2026-07-15T13:34:26.819663729Z'
+- args:
+  - push
+  - us-central1-docker.pkg.dev/elevate-analytics-mcp/elevate-analytics/elevate-analytics-mcp:latest
+  name: gcr.io/cloud-builders/docker
+  pullTiming:
+    endTime: '2026-07-15T13:35:53.377128116Z'
+    startTime: '2026-07-15T13:35:53.375263361Z'
+  status: SUCCESS
+  timing:
+    endTime: '2026-07-15T13:36:07.753272582Z'
+    startTime: '2026-07-15T13:35:53.375263361Z'
+- args:
+  - run
+  - deploy
+  - elevate-analytics-mcp
+  - --image=us-central1-docker.pkg.dev/elevate-analytics-mcp/elevate-analytics/elevate-analytics-mcp:latest
+  - --region=us-central1
+  - --platform=managed
+  - --port=8080
+  - --set-env-vars=^~^NODE_ENV=production~GCP_PROJECT_ID=elevate-analytics-mcp~GCP_REGION=us-central1~GCP_SERVICE_NAME=elevate-analytics-mcp~GOOGLE_REDIRECT_URI=~ALLOWED_ORIGINS=
+  - --set-secrets=DATABASE_URL=database-url:latest,JWT_SECRET=jwt-secret:latest,SESSION_SECRET=session-secret:latest,ENCRYPTION_KEY=encryption-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,MCP_API_KEY=mcp-api-key:latest
+  - --no-allow-unauthenticated
+  entrypoint: gcloud
+  exitCode: 1
+  name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  pullTiming:
+    endTime: '2026-07-15T13:36:07.754782050Z'
+    startTime: '2026-07-15T13:36:07.753370697Z'
+  status: FAILURE
+  timing:
+    endTime: '2026-07-15T13:36:30.231620488Z'
+    startTime: '2026-07-15T13:36:07.753370697Z'
+- args:
+  - -lc
+  - |
+    if [[ "false" == "true" ]]; then
+      gcloud run services add-iam-policy-binding "elevate-analytics-mcp" \
+        --region "us-central1" \
+        --member="allUsers" \
+        --role="roles/run.invoker"
+    fi
+  entrypoint: bash
+  name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  status: QUEUED
+substitutions:
+  _ALLOWED_ORIGINS: ''
+  _ALLOW_UNAUTHENTICATED: 'false'
+  _GOOGLE_REDIRECT_URI: ''
+  _IMAGE_TAG: latest
+  _PLATFORM: managed
+  _REGION: us-central1
+  _REPOSITORY: elevate-analytics
+  _SECRETS: DATABASE_URL=database-url:latest,JWT_SECRET=jwt-secret:latest,SESSION_SECRET=session-secret:latest,ENCRYPTION_KEY=encryption-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,MCP_API_KEY=mcp-api-key:latest
+  _SERVICE_NAME: elevate-analytics-mcp
+timeout: 1800s
+timing:
+  BUILD:
+    endTime: '2026-07-15T13:36:30.231738861Z'
+    startTime: '2026-07-15T13:32:07.116901075Z'
+  FETCHSOURCE:
+    endTime: '2026-07-15T13:32:07.116799991Z'
+    startTime: '2026-07-15T13:32:04.427145833Z'
+  STORAGE_SOURCE:
+    endTime: '2026-07-15T13:32:07.116799991Z'
+    startTime: '2026-07-15T13:32:04.427145833Z'

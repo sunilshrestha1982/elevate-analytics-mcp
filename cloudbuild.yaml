@@ -7,7 +7,7 @@ substitutions:
   _REPOSITORY: elevate-analytics
   _IMAGE_TAG: latest
   _PLATFORM: managed
-  _GOOGLE_REDIRECT_URI: ''
+  _GOOGLE_REDIRECT_URI: 'https://elevate-analytics-mcp-398620554089.us-central1.run.app/oauth/google/callback'
   _ALLOWED_ORIGINS: ''
   _SECRETS: DATABASE_URL=database-url:latest,JWT_SECRET=jwt-secret:latest,SESSION_SECRET=session-secret:latest,ENCRYPTION_KEY=encryption-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,MCP_API_KEY=mcp-api-key:latest
   _ALLOW_UNAUTHENTICATED: "false"

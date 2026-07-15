@@ -75,11 +75,12 @@ app.use('/oauth', oauthRouter);
 
 app.get('/ready', async (_req, res) => {
   const health = await systemHealthService.getHealth();
-  res.status(health.status === 'ok' ? 200 : 503).json(health);
+  res.status(health.status === 'healthy' ? 200 : 503).json(health);
 });
 
-app.get('/live', (_req, res) => {
-  res.status(200).json({ status: 'alive', timestamp: new Date().toISOString() });
+app.get('/live', async (_req, res) => {
+  const health = await systemHealthService.getHealth();
+  res.status(health.status === 'healthy' ? 200 : 503).json(health);
 });
 
 app.get('/version', (_req, res) => {

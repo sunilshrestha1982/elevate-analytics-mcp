@@ -25,7 +25,7 @@ export class SearchConsoleRepository {
       });
       const durationMs = Date.now() - startedAt;
       observeGoogleApiLatency('search_console', 'listSites', response.status, durationMs);
-      logger.info('Search Console request performance', { userId, operation: 'listSites', durationMs, statusCode: response.status });
+      logger.info('Search Console request performance', { userId, operation: 'listSites', googleApiLatencyMs: durationMs, statusCode: response.status });
       if (!response.ok) {
         if (response.status === 429) {
           incrementGoogleApiQuota('search_console', 'listSites');
@@ -60,7 +60,7 @@ export class SearchConsoleRepository {
       });
       const durationMs = Date.now() - startedAt;
       observeGoogleApiLatency('search_console', 'queryAnalytics', response.status, durationMs);
-      logger.info('Search Console request performance', { userId, operation: 'queryAnalytics', durationMs, statusCode: response.status });
+      logger.info('Search Console request performance', { userId, operation: 'queryAnalytics', googleApiLatencyMs: durationMs, statusCode: response.status });
       if (!response.ok) {
         if (response.status === 429) {
           incrementGoogleApiQuota('search_console', 'queryAnalytics');

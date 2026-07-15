@@ -44,6 +44,7 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
       genReqId: (req) => req.id ?? randomUUID(),
       customProps: (req: Request) => ({
         requestId: req.id,
+        traceId: req.context?.traceId,
         authenticatedUserEmail: req.auth?.email,
       }),
       customSuccessMessage: (req: IncomingMessage) => `mcp request completed: ${req.method} ${req.url}`,
@@ -57,10 +58,29 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
         'http.request_id': typeof req.id === 'string' ? req.id : '',
       },
     });
+    const traceId = span.spanContext().traceId;
+    req.context = {
+      ...(req.context ?? {
+        requestId: typeof req.id === 'string' ? req.id : randomUUID(),
+        startTime: Date.now(),
+        userId: req.auth?.userId ?? 0,
+      }),
+      traceId,
+      userEmail: req.auth?.email,
+    };
     const start = process.hrtime.bigint();
     res.on('finish', () => {
       const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
       observeRequestDuration(req.method, req.route?.path ?? req.path, res.statusCode, durationMs);
+      logger.info('MCP request duration', {
+        requestId: req.context?.requestId ?? req.id,
+        traceId,
+        path: req.path,
+        method: req.method,
+        authenticatedUser: req.context?.userEmail,
+        statusCode: res.statusCode,
+        executionTimeMs: Number(durationMs.toFixed(2)),
+      });
       span.setAttribute('http.status_code', res.statusCode);
       span.setAttribute('http.response_time_ms', Number(durationMs.toFixed(2)));
       span.end();

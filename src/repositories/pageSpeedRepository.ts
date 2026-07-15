@@ -32,7 +32,13 @@ export class PageSpeedRepository {
         const response = await this.fetcher(query.toString(), { headers: { Accept: 'application/json' } });
         const durationMs = Date.now() - startedAt;
         observeGoogleApiLatency('pagespeed', 'analyzeUrl', response.status, durationMs);
-        logger.info('PageSpeed request performance', { userId, url, strategy: request.strategy, durationMs, statusCode: response.status });
+        logger.info('PageSpeed request performance', {
+          userId,
+          url,
+          strategy: request.strategy,
+          googleApiLatencyMs: durationMs,
+          statusCode: response.status,
+        });
         if (!response.ok) {
           await this.handleErrorResponse(response);
         }

@@ -8,6 +8,7 @@ import { reportEngine } from '../reports/reportEngine.js';
 import { observeMcpToolExecution } from '../lib/metrics.js';
 import type { Logger } from './logger.js';
 import { traceAsync } from '../lib/tracing.js';
+import { randomUUID } from 'node:crypto';
 
 const requestShape = {
   userId: z.number().int().positive().optional(),
@@ -56,13 +57,27 @@ export function createToolRegistry(server: McpServer, logger: Logger): ToolRegis
         const result = await traceAsync('mcp-tool', `mcp.tool.${name}`, { toolName: name }, async () => handler(args));
         const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
         observeMcpToolExecution(name, 'ok', durationMs);
-        logger.info('MCP tool executed', { toolName: name, durationMs: Number(durationMs.toFixed(2)) });
+        logger.info('MCP tool executed', {
+          mcpTool: name,
+          executionTimeMs: Number(durationMs.toFixed(2)),
+        });
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       } catch (error) {
         const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
+        const errorId = randomUUID();
         observeMcpToolExecution(name, 'error', durationMs);
-        logger.error(`MCP tool failed: ${name}`, { toolName: name, durationMs: Number(durationMs.toFixed(2)), error });
-        return { content: [{ type: 'text', text: JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }, null, 2) }] };
+        logger.error(`MCP tool failed: ${name}`, {
+          errorId,
+          mcpTool: name,
+          executionTimeMs: Number(durationMs.toFixed(2)),
+          error,
+        });
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error', errorId }, null, 2),
+          }],
+        };
       }
     });
   };

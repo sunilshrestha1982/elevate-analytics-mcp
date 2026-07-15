@@ -31,6 +31,7 @@ app.use(
     genReqId: (req) => req.id ?? randomUUID(),
     customProps: (req: Request) => ({
       requestId: req.id,
+      traceId: req.context?.traceId,
       authenticatedUserEmail: req.user?.email ?? req.auth?.email,
     }),
     customSuccessMessage: (req: IncomingMessage) => `request completed: ${req.method} ${req.url}`,
@@ -48,17 +49,26 @@ app.use((req, res, next) => {
       'http.request_id': typeof req.id === 'string' ? req.id : '',
     },
   });
+  const traceId = span.spanContext().traceId;
+  req.context = {
+    requestId: typeof req.id === 'string' ? req.id : randomUUID(),
+    startTime: Date.now(),
+    userId: req.auth?.userId ?? req.user?.sub ?? 0,
+    userEmail: req.user?.email ?? req.auth?.email,
+    traceId,
+  };
   const start = process.hrtime.bigint();
   res.on('finish', () => {
     const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
     observeRequestDuration(req.method, req.route?.path ?? req.path, res.statusCode, durationMs);
     logger.info('HTTP request duration', {
       requestId: req.id,
+      traceId,
       method: req.method,
       path: req.path,
-      authenticatedUserEmail: req.user?.email ?? req.auth?.email,
+      authenticatedUser: req.user?.email ?? req.auth?.email,
       statusCode: res.statusCode,
-      durationMs: Number(durationMs.toFixed(2)),
+      executionTimeMs: Number(durationMs.toFixed(2)),
     });
     span.setAttribute('http.status_code', res.statusCode);
     span.setAttribute('http.response_time_ms', Number(durationMs.toFixed(2)));
@@ -106,6 +116,18 @@ app.get('/metrics', async (req, res) => {
 
 app.get('/', (_req, res) => {
   res.json({ message: 'Elevate Analytics MCP server is running', stats: getNodeStatsSnapshot() });
+});
+
+app.use((error: unknown, req: Request, res: express.Response, _next: express.NextFunction) => {
+  const errorId = randomUUID();
+  logger.error('Unhandled HTTP error', {
+    errorId,
+    requestId: req.id,
+    traceId: req.context?.traceId,
+    authenticatedUser: req.user?.email ?? req.auth?.email,
+    error,
+  });
+  res.status(500).json({ error: 'Internal Server Error', errorId });
 });
 
 const server = app.listen(env.PORT, () => {

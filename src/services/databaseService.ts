@@ -18,15 +18,27 @@ export class DatabaseService {
       const startedAt = Date.now();
       try {
         await prisma.$queryRaw`SELECT 1`;
-        observeDatabaseLatency('health_check', 'ok', Date.now() - startedAt);
+        const latencyMs = Date.now() - startedAt;
+        observeDatabaseLatency('health_check', 'ok', latencyMs);
+        logger.info('Database health check latency', {
+          operation: 'health_check',
+          databaseLatencyMs: latencyMs,
+          status: 'ok',
+        });
         return {
           status: 'ok',
           service: 'database',
           timestamp: new Date().toISOString(),
         };
       } catch (error) {
-        observeDatabaseLatency('health_check', 'error', Date.now() - startedAt);
-        logger.error('Database health check failed', error);
+        const latencyMs = Date.now() - startedAt;
+        observeDatabaseLatency('health_check', 'error', latencyMs);
+        logger.error('Database health check failed', {
+          operation: 'health_check',
+          databaseLatencyMs: latencyMs,
+          status: 'error',
+          error,
+        });
         return {
           status: 'error',
           service: 'database',

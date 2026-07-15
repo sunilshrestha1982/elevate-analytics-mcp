@@ -31,7 +31,7 @@ export class GoogleAnalyticsRepository {
         });
         const durationMs = Date.now() - startedAt;
         observeGoogleApiLatency('ga4', 'listProperties', response.status, durationMs);
-        logger.info('GA4 request performance', { userId, operation: 'listProperties', durationMs, statusCode: response.status });
+        logger.info('GA4 request performance', { userId, operation: 'listProperties', googleApiLatencyMs: durationMs, statusCode: response.status });
         if (!response.ok) {
           await this.handleErrorResponse(response, 'properties');
         }
@@ -53,7 +53,7 @@ export class GoogleAnalyticsRepository {
         });
         const durationMs = Date.now() - startedAt;
         observeGoogleApiLatency('ga4', 'getProperty', response.status, durationMs);
-        logger.info('GA4 request performance', { userId, propertyId, operation: 'getProperty', durationMs, statusCode: response.status });
+        logger.info('GA4 request performance', { userId, propertyId, operation: 'getProperty', googleApiLatencyMs: durationMs, statusCode: response.status });
         if (!response.ok) {
           await this.handleErrorResponse(response, 'property');
         }
@@ -82,7 +82,7 @@ export class GoogleAnalyticsRepository {
         });
         const durationMs = Date.now() - startedAt;
         observeGoogleApiLatency('ga4', 'runReport', response.status, durationMs);
-        logger.info('GA4 request performance', { userId, propertyId, operation: 'runReport', durationMs, statusCode: response.status });
+        logger.info('GA4 request performance', { userId, propertyId, operation: 'runReport', googleApiLatencyMs: durationMs, statusCode: response.status });
         if (!response.ok) {
           await this.handleErrorResponse(response, 'report');
         }

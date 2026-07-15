@@ -19,6 +19,8 @@ declare global {
         userId: number;
         userEmail?: string;
         toolName?: string;
+        traceId?: string;
+        errorId?: string;
       };
     }
   }

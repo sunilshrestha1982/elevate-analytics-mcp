@@ -13,7 +13,13 @@ export function createAuthMiddleware(logger: Logger) {
       authenticated: Boolean(apiKey),
       email: apiKey && env.MCP_API_KEY && apiKey === env.MCP_API_KEY ? 'mcp-api-key@local' : undefined,
     };
-    logger.info('MCP auth checked', { path: req.path, authenticated: Boolean(apiKey) });
+    logger.info('MCP auth checked', {
+      path: req.path,
+      requestId: req.context?.requestId ?? req.id,
+      traceId: req.context?.traceId,
+      authenticated: Boolean(apiKey),
+      authenticatedUser: req.auth.email,
+    });
     next();
   };
 }

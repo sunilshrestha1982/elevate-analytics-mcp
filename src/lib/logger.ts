@@ -1,4 +1,5 @@
 import pino, { type Logger as PinoLogger } from 'pino';
+import { getActiveTraceContext } from './tracing.js';
 
 const pinoLogger = pino({
   level: process.env.LOG_LEVEL ?? 'info',
@@ -37,25 +38,28 @@ function normalizeMeta(meta: unknown) {
 function wrapLogger(base: PinoLogger) {
   return {
     info: (message: string, meta?: unknown) => {
+      const traceContext = getActiveTraceContext();
       if (meta !== undefined) {
-        base.info({ meta: normalizeMeta(meta) }, message);
+        base.info({ ...traceContext, meta: normalizeMeta(meta) }, message);
         return;
       }
-      base.info(message);
+      base.info(traceContext, message);
     },
     warn: (message: string, meta?: unknown) => {
+      const traceContext = getActiveTraceContext();
       if (meta !== undefined) {
-        base.warn({ meta: normalizeMeta(meta) }, message);
+        base.warn({ ...traceContext, meta: normalizeMeta(meta) }, message);
         return;
       }
-      base.warn(message);
+      base.warn(traceContext, message);
     },
     error: (message: string, meta?: unknown) => {
+      const traceContext = getActiveTraceContext();
       if (meta !== undefined) {
-        base.error({ meta: normalizeMeta(meta) }, message);
+        base.error({ ...traceContext, meta: normalizeMeta(meta) }, message);
         return;
       }
-      base.error(message);
+      base.error(traceContext, message);
     },
     child: (bindings: Record<string, unknown>) => wrapLogger(base.child(bindings)),
     raw: base,

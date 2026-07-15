@@ -29,6 +29,19 @@ export function getTracer(scope: string): Tracer {
   return trace.getTracer(scope);
 }
 
+export function getActiveTraceContext() {
+  const activeSpan = trace.getSpan(context.active());
+  if (!activeSpan) {
+    return {};
+  }
+
+  const spanContext = activeSpan.spanContext();
+  return {
+    traceId: spanContext.traceId,
+    spanId: spanContext.spanId,
+  };
+}
+
 export async function traceAsync<T>(scope: string, name: string, attributes: Attributes, run: () => Promise<T>): Promise<T> {
   const tracer = getTracer(scope);
   return tracer.startActiveSpan(name, { attributes }, async (span) => {

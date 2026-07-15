@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
+nan
 : "${GCP_PROJECT_ID:?GCP_PROJECT_ID is required}"
 : "${GCP_REGION:?GCP_REGION is required}"
 : "${GCP_SERVICE_NAME:?GCP_SERVICE_NAME is required}"

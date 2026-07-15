@@ -34,7 +34,7 @@ gcloud run deploy "${GCP_SERVICE_NAME}" \
   --no-allow-unauthenticated \
   --port 8080 \
   --image "${IMAGE_URI}" \
-  --set-env-vars "^~^NODE_ENV=production~PORT=8080~GCP_PROJECT_ID=${GCP_PROJECT_ID}~GCP_REGION=${GCP_REGION}~GCP_SERVICE_NAME=${GCP_SERVICE_NAME}~GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}~ALLOWED_ORIGINS=${ALLOWED_ORIGINS}" \
+  --set-env-vars "^~^NODE_ENV=production~GCP_PROJECT_ID=${GCP_PROJECT_ID}~GCP_REGION=${GCP_REGION}~GCP_SERVICE_NAME=${GCP_SERVICE_NAME}~GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}~ALLOWED_ORIGINS=${ALLOWED_ORIGINS}" \
   --set-secrets DATABASE_URL=database-url:latest,JWT_SECRET=jwt-secret:latest,SESSION_SECRET=session-secret:latest,ENCRYPTION_KEY=encryption-key:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,MCP_API_KEY=mcp-api-key:latest
 
 echo "Deploy complete: ${IMAGE_URI}"

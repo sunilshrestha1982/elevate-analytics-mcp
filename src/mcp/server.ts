@@ -18,7 +18,8 @@ import { createMcpApiKeyAuthMiddleware } from '../middleware/mcpApiKeyAuth.js';
 import { getMetricsRegistry, observeRequestDuration } from '../lib/metrics.js';
 import { env } from '../config/env.js';
 import { getPinoLogger } from '../lib/logger.js';
-import { getTracer } from '../lib/tracing.js';
+import { extractTraceContextFromHeaders, getTracer } from '../lib/tracing.js';
+import { context, trace } from '@opentelemetry/api';
 
 export function createMcpApp(options: { name?: string; version?: string } = {}) {
   const app = express();
@@ -51,13 +52,16 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
     })
   );
   app.use((req, res, next) => {
+    const parentContext = extractTraceContextFromHeaders(req.headers as unknown as Record<string, unknown>);
     const span = tracer.startSpan(`mcp ${req.method} ${req.path}`, {
       attributes: {
         'http.method': req.method,
         'http.route': req.path,
         'http.request_id': typeof req.id === 'string' ? req.id : '',
+        ...(process.env.K_SERVICE ? { 'cloud.run.service.name': process.env.K_SERVICE } : {}),
+        ...(process.env.K_REVISION ? { 'cloud.run.revision': process.env.K_REVISION } : {}),
       },
-    });
+    }, parentContext);
     const traceId = span.spanContext().traceId;
     req.context = {
       ...(req.context ?? {
@@ -85,7 +89,8 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
       span.setAttribute('http.response_time_ms', Number(durationMs.toFixed(2)));
       span.end();
     });
-    next();
+    const spanContext = trace.setSpan(parentContext, span);
+    context.with(spanContext, next);
   });
 
   app.use(express.json({ limit: '2mb' }));

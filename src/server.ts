@@ -16,7 +16,8 @@ import { databaseService } from './services/databaseService.js';
 import { systemHealthService } from './services/systemHealthService.js';
 import { requestTimeoutMiddleware } from './middleware/requestTimeout.js';
 import { inputSanitizationMiddleware } from './middleware/inputSanitization.js';
-import { getTracer } from './lib/tracing.js';
+import { extractTraceContextFromHeaders, getTracer } from './lib/tracing.js';
+import { context, trace } from '@opentelemetry/api';
 
 dotenv.config();
 validateRequiredEnvOnStartup();
@@ -42,13 +43,16 @@ app.use(requestTimeoutMiddleware);
 app.use(inputSanitizationMiddleware);
 
 app.use((req, res, next) => {
+  const parentContext = extractTraceContextFromHeaders(req.headers as unknown as Record<string, unknown>);
   const span = tracer.startSpan(`http ${req.method} ${req.path}`, {
     attributes: {
       'http.method': req.method,
       'http.route': req.path,
       'http.request_id': typeof req.id === 'string' ? req.id : '',
+      ...(process.env.K_SERVICE ? { 'cloud.run.service.name': process.env.K_SERVICE } : {}),
+      ...(process.env.K_REVISION ? { 'cloud.run.revision': process.env.K_REVISION } : {}),
     },
-  });
+  }, parentContext);
   const traceId = span.spanContext().traceId;
   req.context = {
     requestId: typeof req.id === 'string' ? req.id : randomUUID(),
@@ -74,7 +78,8 @@ app.use((req, res, next) => {
     span.setAttribute('http.response_time_ms', Number(durationMs.toFixed(2)));
     span.end();
   });
-  next();
+  const spanContext = trace.setSpan(parentContext, span);
+  context.with(spanContext, next);
 });
 
 app.use(express.json());

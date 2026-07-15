@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GoogleAnalyticsService } from './googleAnalyticsService.js';
-import { InMemoryGoogleAnalyticsCache } from './googleAnalyticsCache.js';
+import { RedisGoogleAnalyticsCache } from './googleAnalyticsCache.js';
 import { GoogleAnalyticsValidator } from './googleAnalyticsValidator.js';
 import { GoogleAnalyticsMapper } from './googleAnalyticsMapper.js';
 
@@ -18,7 +18,7 @@ describe('GoogleAnalyticsService', () => {
     repository = new MockGoogleAnalyticsRepository();
     service = new GoogleAnalyticsService({
       repository: repository as any,
-      cache: new InMemoryGoogleAnalyticsCache(),
+      cache: new RedisGoogleAnalyticsCache(),
       validator: new GoogleAnalyticsValidator(),
       mapper: new GoogleAnalyticsMapper(),
       tokenProvider: async () => 'token-123',

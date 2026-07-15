@@ -1,7 +1,7 @@
 import { logger } from '../lib/logger.js';
 import { GoogleAnalyticsValidator, type GoogleAnalyticsReportInput } from './googleAnalyticsValidator.js';
 import { GoogleAnalyticsMapper } from './googleAnalyticsMapper.js';
-import { InMemoryGoogleAnalyticsCache } from './googleAnalyticsCache.js';
+import { RedisGoogleAnalyticsCache } from './googleAnalyticsCache.js';
 
 export interface GoogleAnalyticsRow {
   dimensions: Record<string, string>;
@@ -56,7 +56,7 @@ export interface GoogleAnalyticsServiceDependencies {
 
 export class GoogleAnalyticsService {
   constructor(private readonly deps: GoogleAnalyticsServiceDependencies) {
-    this.deps.cache ??= new InMemoryGoogleAnalyticsCache();
+    this.deps.cache ??= new RedisGoogleAnalyticsCache();
     this.deps.validator ??= new GoogleAnalyticsValidator();
     this.deps.mapper ??= new GoogleAnalyticsMapper();
     this.deps.tokenProvider ??= async () => '';
@@ -258,7 +258,7 @@ export class GoogleAnalyticsService {
 
 export const googleAnalyticsService = new GoogleAnalyticsService({
   repository: {} as GoogleAnalyticsRepositoryLike,
-  cache: new InMemoryGoogleAnalyticsCache(),
+  cache: new RedisGoogleAnalyticsCache(),
   validator: new GoogleAnalyticsValidator(),
   mapper: new GoogleAnalyticsMapper(),
 });

@@ -1,7 +1,9 @@
 import { RedisBackedCache } from '../lib/cache.js';
 
-export class InMemoryGoogleAnalyticsCache extends RedisBackedCache {
+export class RedisGoogleAnalyticsCache extends RedisBackedCache {
   constructor() {
-    super('google-analytics', process.env.REDIS_URL);
+    super('google-analytics');
   }
 }
+
+export const InMemoryGoogleAnalyticsCache = RedisGoogleAnalyticsCache;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SearchConsoleService } from './searchConsoleService.js';
-import { InMemorySearchConsoleCache } from './searchConsoleCache.js';
+import { RedisSearchConsoleCache } from './searchConsoleCache.js';
 import { SearchConsoleValidator } from './searchConsoleValidator.js';
 import { SearchConsoleMapper } from './searchConsoleMapper.js';
 
@@ -17,7 +17,7 @@ describe('SearchConsoleService', () => {
     repository = new MockSearchConsoleRepository();
     service = new SearchConsoleService({
       repository: repository as any,
-      cache: new InMemorySearchConsoleCache(),
+      cache: new RedisSearchConsoleCache(),
       validator: new SearchConsoleValidator(),
       mapper: new SearchConsoleMapper(),
       tokenProvider: async () => 'token-123',

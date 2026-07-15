@@ -1,7 +1,7 @@
 import { logger } from '../lib/logger.js';
 import { SearchConsoleValidator, type SearchConsoleQueryInput } from './searchConsoleValidator.js';
 import { SearchConsoleMapper } from './searchConsoleMapper.js';
-import { InMemorySearchConsoleCache } from './searchConsoleCache.js';
+import { RedisSearchConsoleCache } from './searchConsoleCache.js';
 
 export interface SearchConsoleSite {
   siteUrl: string;
@@ -65,7 +65,7 @@ export interface SearchConsoleServiceDependencies {
 
 export class SearchConsoleService {
   constructor(private readonly deps: SearchConsoleServiceDependencies) {
-    this.deps.cache ??= new InMemorySearchConsoleCache();
+    this.deps.cache ??= new RedisSearchConsoleCache();
     this.deps.validator ??= new SearchConsoleValidator();
     this.deps.mapper ??= new SearchConsoleMapper();
     this.deps.tokenProvider ??= async () => '';
@@ -449,7 +449,7 @@ export class SearchConsoleService {
 
 export const searchConsoleService = new SearchConsoleService({
   repository: {} as SearchConsoleRepositoryLike,
-  cache: new InMemorySearchConsoleCache(),
+  cache: new RedisSearchConsoleCache(),
   validator: new SearchConsoleValidator(),
   mapper: new SearchConsoleMapper(),
 });

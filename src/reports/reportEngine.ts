@@ -8,7 +8,7 @@ import { ExecutiveSummaryService } from './executiveSummaryService.js';
 import { ForecastEngine } from './forecastEngine.js';
 import { InsightGenerator } from './insightGenerator.js';
 import { NarrativeBuilder } from './narrativeBuilder.js';
-import { InMemoryReportCache, type ReportCache } from './reportCache.js';
+import { RedisReportCache, type ReportCache } from './reportCache.js';
 import { DefaultReportRepository, type ReportRepository } from './reportRepository.js';
 import { RecommendationGenerator } from './recommendationGenerator.js';
 import { ReportValidator } from './reportValidator.js';
@@ -57,7 +57,7 @@ export class ReportEngine {
 
   constructor(deps: ReportEngineDependencies = {}) {
     this.validator = deps.validator ?? new ReportValidator();
-    this.cache = deps.cache ?? new InMemoryReportCache();
+    this.cache = deps.cache ?? new RedisReportCache();
     this.repository =
       deps.repository ??
       new DefaultReportRepository({

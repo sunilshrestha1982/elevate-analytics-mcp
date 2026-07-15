@@ -1,7 +1,9 @@
 import { RedisBackedCache } from '../lib/cache.js';
 
-export class InMemoryPageSpeedCache extends RedisBackedCache {
+export class RedisPageSpeedCache extends RedisBackedCache {
   constructor() {
-    super('pagespeed', process.env.REDIS_URL);
+    super('pagespeed');
   }
 }
+
+export const InMemoryPageSpeedCache = RedisPageSpeedCache;

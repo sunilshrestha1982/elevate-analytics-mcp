@@ -1,7 +1,7 @@
 import { logger } from '../lib/logger.js';
 import type { PageSpeedReport } from '../repositories/pageSpeedRepository.js';
 import { PageSpeedValidator, type PageSpeedRequestInput } from './pageSpeedValidator.js';
-import { InMemoryPageSpeedCache } from './pageSpeedCache.js';
+import { RedisPageSpeedCache } from './pageSpeedCache.js';
 import { TechnicalSEOAnalyzer } from './technicalSeoAnalyzer.js';
 import { CoreWebVitalsAnalyzer } from './coreWebVitalsAnalyzer.js';
 import { PerformanceAnalyzer } from './performanceAnalyzer.js';
@@ -56,7 +56,7 @@ export interface PageSpeedServiceDependencies {
 
 export class PageSpeedService {
   constructor(private readonly deps: PageSpeedServiceDependencies) {
-    this.deps.cache ??= new InMemoryPageSpeedCache();
+    this.deps.cache ??= new RedisPageSpeedCache();
     this.deps.validator ??= new PageSpeedValidator();
     this.deps.technicalAnalyzer ??= new TechnicalSEOAnalyzer();
     this.deps.coreWebVitalsAnalyzer ??= new CoreWebVitalsAnalyzer();
@@ -253,6 +253,6 @@ export class PageSpeedService {
 
 export const pageSpeedService = new PageSpeedService({
   repository: {} as PageSpeedRepositoryLike,
-  cache: new InMemoryPageSpeedCache(),
+  cache: new RedisPageSpeedCache(),
   validator: new PageSpeedValidator(),
 });

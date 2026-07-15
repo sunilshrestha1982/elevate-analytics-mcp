@@ -6,8 +6,10 @@ export interface ReportCache {
   delete(key: string): void;
 }
 
-export class InMemoryReportCache extends RedisBackedCache implements ReportCache {
+export class RedisReportCache extends RedisBackedCache implements ReportCache {
   constructor() {
-    super('report-engine', process.env.REDIS_URL);
+    super('report-engine');
   }
 }
+
+export const InMemoryReportCache = RedisReportCache;

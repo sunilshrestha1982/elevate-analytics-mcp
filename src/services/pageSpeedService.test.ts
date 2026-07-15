@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PageSpeedService } from './pageSpeedService.js';
 import { PageSpeedValidator } from './pageSpeedValidator.js';
-import { InMemoryPageSpeedCache } from './pageSpeedCache.js';
+import { RedisPageSpeedCache } from './pageSpeedCache.js';
 import { TechnicalSEOAnalyzer } from './technicalSeoAnalyzer.js';
 import { CoreWebVitalsAnalyzer } from './coreWebVitalsAnalyzer.js';
 import { PerformanceAnalyzer } from './performanceAnalyzer.js';
@@ -18,7 +18,7 @@ describe('PageSpeedService', () => {
     repository = new StubPageSpeedRepository();
     service = new PageSpeedService({
       repository: repository as any,
-      cache: new InMemoryPageSpeedCache(),
+      cache: new RedisPageSpeedCache(),
       validator: new PageSpeedValidator(),
       technicalAnalyzer: new TechnicalSEOAnalyzer(),
       coreWebVitalsAnalyzer: new CoreWebVitalsAnalyzer(),

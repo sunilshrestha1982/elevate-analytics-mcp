@@ -1,5 +1,5 @@
 import { logger } from '../lib/logger.js';
-import { InMemoryGoogleAnalyticsCache } from './googleAnalyticsCache.js';
+import { RedisGoogleAnalyticsCache } from './googleAnalyticsCache.js';
 
 export interface SearchConsoleSnapshot {
   rows: Array<{
@@ -84,7 +84,7 @@ export interface SEOInsightServiceDependencies {
 
 export class SEOInsightService {
   constructor(private readonly deps: SEOInsightServiceDependencies) {
-    this.deps.cache ??= new InMemoryGoogleAnalyticsCache();
+    this.deps.cache ??= new RedisGoogleAnalyticsCache();
   }
 
   async trafficDropAnalysis(userId: number, siteUrl: string, propertyId: string, input: Record<string, unknown>): Promise<SEOInsightResult> {

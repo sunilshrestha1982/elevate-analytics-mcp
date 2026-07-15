@@ -63,7 +63,6 @@ export class OAuthService {
         'profile',
         'https://www.googleapis.com/auth/webmasters.readonly',
         'https://www.googleapis.com/auth/analytics.readonly',
-        'https://www.googleapis.com/auth/pagespeedonline',
       ].join(' '));
       redirectUrl.searchParams.set('access_type', 'offline');
       redirectUrl.searchParams.set('prompt', 'consent');

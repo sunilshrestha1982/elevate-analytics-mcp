@@ -1,16 +1,17 @@
 import { PrismaClient } from '@prisma/client';
-import { env } from '../config/env.js';
 import { logger } from './logger.js';
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  log: nodeEnv === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
-if (env.NODE_ENV !== 'production') {
+if (nodeEnv !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 

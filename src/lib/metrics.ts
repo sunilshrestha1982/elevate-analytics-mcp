@@ -87,7 +87,7 @@ const processUptimeSeconds = getOrCreateGauge('elevate_process_uptime_seconds', 
 
 const nodeVersionInfo = getOrCreateGauge('elevate_nodejs_version_info', {
   help: 'Node.js runtime version information',
-  labelNames: ['version'],
+  labelNames: ['version', 'major', 'minor', 'patch'],
 });
 
 let lastCpu = process.cpuUsage();
@@ -136,7 +136,9 @@ export function updateProcessResourceMetrics() {
   processCpuSeconds.labels('user').inc(cpu.user / 1_000_000);
   processCpuSeconds.labels('system').inc(cpu.system / 1_000_000);
   processUptimeSeconds.set(process.uptime());
-  nodeVersionInfo.labels(process.version).set(1);
+  const parsedVersion = /^v?(\d+)\.(\d+)\.(\d+)/.exec(process.version);
+  const [, major = '0', minor = '0', patch = '0'] = parsedVersion ?? [];
+  nodeVersionInfo.labels(process.version, major, minor, patch).set(1);
 }
 
 setInterval(() => {

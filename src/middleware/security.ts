@@ -3,7 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import type { Express } from 'express';
-import { env } from '../config/env.js';
+import { getEnv } from '../config/env.js';
 
 const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
 
@@ -31,6 +31,7 @@ export function isOriginAllowed(origin: string | undefined, allowedOrigins: stri
 }
 
 export function applySecurityMiddleware(app: Express) {
+  const env = getEnv();
   app.disable('x-powered-by');
   app.set('trust proxy', env.TRUST_PROXY ? 1 : false);
   const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);

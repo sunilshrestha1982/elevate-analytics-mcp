@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createClient } from 'redis';
-import { env } from '../config/env.js';
+import { getEnv, type Env } from '../config/env.js';
 import { databaseService } from './databaseService.js';
 import { RedisBackedCache } from '../lib/cache.js';
 
@@ -18,7 +18,7 @@ const healthResponseSchema = z.object({
 
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
 
-type HealthConfig = Pick<typeof env, 'GOOGLE_CLIENT_ID' | 'GOOGLE_CLIENT_SECRET' | 'GOOGLE_REDIRECT_URI' | 'REDIS_URL'>;
+type HealthConfig = Pick<Env, 'GOOGLE_CLIENT_ID' | 'GOOGLE_CLIENT_SECRET' | 'GOOGLE_REDIRECT_URI' | 'REDIS_URL'>;
 
 type DependencyCheckResult = {
   status: 'ok' | 'error';
@@ -26,7 +26,7 @@ type DependencyCheckResult = {
 };
 
 type SystemHealthServiceDependencies = {
-  config: HealthConfig;
+  config: HealthConfig | (() => HealthConfig);
   checkDatabase: () => Promise<DependencyCheckResult>;
   checkRedis: (redisUrl?: string) => Promise<DependencyCheckResult>;
   checkCache: () => DependencyCheckResult;
@@ -92,7 +92,7 @@ const isOAuthConfigured = (config: HealthConfig) => {
 
 export class SystemHealthService {
   constructor(private readonly deps: SystemHealthServiceDependencies = {
-    config: env,
+    config: () => getEnv(),
     checkDatabase: async () => {
       const result = await databaseService.checkHealth();
       return {
@@ -105,12 +105,13 @@ export class SystemHealthService {
   }) {}
 
   async getHealth(): Promise<HealthResponse> {
+    const config = typeof this.deps.config === 'function' ? this.deps.config() : this.deps.config;
     const database = await this.deps.checkDatabase();
-    const oauthStatus: 'ok' | 'error' = isOAuthConfigured(this.deps.config) ? 'ok' : 'error';
+    const oauthStatus: 'ok' | 'error' = isOAuthConfigured(config) ? 'ok' : 'error';
     const searchConsoleStatus: 'ok' | 'error' = oauthStatus === 'ok' ? 'ok' : 'error';
     const analyticsStatus: 'ok' | 'error' = oauthStatus === 'ok' ? 'ok' : 'error';
-    const redis = await this.deps.checkRedis(this.deps.config.REDIS_URL);
-    const cacheRoundtrip = this.deps.checkCache();
+    const redis = config.REDIS_URL ? await this.deps.checkRedis(config.REDIS_URL) : { status: 'ok' as const };
+    const cacheRoundtrip = config.REDIS_URL ? this.deps.checkCache() : { status: 'ok' as const };
     const cacheStatus: 'ok' | 'error' = redis.status === 'ok' && cacheRoundtrip.status === 'ok' ? 'ok' : 'error';
 
     const healthy = database.status === 'ok' && oauthStatus === 'ok' && searchConsoleStatus === 'ok' && analyticsStatus === 'ok' && cacheStatus === 'ok';

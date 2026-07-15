@@ -2,6 +2,8 @@
 
 Production-ready analytics and MCP platform integrating Google Search Console, GA4, PageSpeed Insights, and SEO intelligence.
 
+The application is configured for Google Cloud Run and listens on `0.0.0.0:${PORT:-8080}` in production.
+
 ## Installation
 
 1. Install Node.js 22+.
@@ -31,6 +33,8 @@ Run local development server:
 npm run dev
 ```
 
+Default local port: `8080`
+
 Run with Docker Compose:
 
 ```bash
@@ -41,7 +45,7 @@ docker compose up --build
 
 1. Create OAuth credentials in Google Cloud Console.
 2. Configure authorized callback URL:
-	- local: http://localhost:3000/oauth/google/callback
+	- local: http://localhost:8080/oauth/google/callback
 	- production: https://YOUR_CLOUD_RUN_DOMAIN/oauth/google/callback
 3. Set these environment variables:
 	- GOOGLE_CLIENT_ID
@@ -70,8 +74,20 @@ docker compose up --build
 ### Option A: Cloud Build
 
 ```bash
-gcloud builds submit --config cloudbuild.yaml .
+gcloud builds submit \
+	--config cloudbuild.yaml \
+	--substitutions=_SERVICE_NAME=elevate-analytics-mcp,_REGION=us-central1,_REPOSITORY=elevate-analytics,_GOOGLE_REDIRECT_URI=https://YOUR_CLOUD_RUN_DOMAIN/oauth/google/callback,_ALLOWED_ORIGINS=https://YOUR_APP_DOMAIN \
+	.
 ```
+
+Cloud Build pipeline actions:
+
+1. Runs `npm ci`, `npm run lint`, `npm run build`, and `npm test`.
+2. Verifies required Secret Manager secrets exist.
+3. Creates the Artifact Registry repository if it does not already exist.
+4. Builds a production image from `Dockerfile`.
+5. Pushes image to Artifact Registry.
+6. Deploys to Cloud Run with env vars and Secret Manager bindings.
 
 ### Option B: Scripted Deploy
 
@@ -79,6 +95,8 @@ gcloud builds submit --config cloudbuild.yaml .
 export GCP_PROJECT_ID=your-project
 export GCP_REGION=us-central1
 export GCP_SERVICE_NAME=elevate-analytics-mcp
+export GOOGLE_REDIRECT_URI=https://YOUR_CLOUD_RUN_DOMAIN/oauth/google/callback
+export ALLOWED_ORIGINS=https://YOUR_APP_DOMAIN
 export IMAGE_TAG=$(git rev-parse --short HEAD)
 bash scripts/deploy-cloud-run.sh
 ```
@@ -87,11 +105,24 @@ bash scripts/deploy-cloud-run.sh
 
 Set secrets in Google Secret Manager and bind on deploy:
 
+- database-url
 - jwt-secret
 - session-secret
 - encryption-key
+- google-client-id
 - google-client-secret
 - mcp-api-key
+
+Recommended runtime env vars:
+
+- NODE_ENV=production
+- PORT=8080
+- LOG_LEVEL=info
+- ALLOWED_ORIGINS=https://your-app.example.com
+- GOOGLE_REDIRECT_URI=https://YOUR_CLOUD_RUN_DOMAIN/oauth/google/callback
+- GCP_PROJECT_ID=<your-project>
+- GCP_REGION=us-central1
+- GCP_SERVICE_NAME=elevate-analytics-mcp
 
 ## Claude Custom Connector Configuration
 
@@ -149,6 +180,12 @@ Collected metrics include:
 - GET /ready
 - GET /live
 
+Endpoint semantics:
+
+- `/live` only reports process liveness and should return `200` while the container is running.
+- `/ready` reports dependency readiness and returns `503` when required integrations are unavailable.
+- `/health` returns the full dependency health payload.
+
 Authenticated endpoints:
 
 - GET /version
@@ -159,7 +196,7 @@ Authenticated endpoints:
 
 Required in all environments:
 
-- DATABASE_URL
+- DATABASE_URL except in test
 
 Required in production:
 
@@ -185,7 +222,7 @@ Optional but recommended:
 
 - `ALLOWED_ORIGINS` accepts a comma-separated list of browser origins.
 - Wildcard origins such as `*` are ignored and never allowed.
-- In development, localhost origins such as `http://localhost:3000` and `http://127.0.0.1:3000` are allowed automatically.
+- In development, localhost origins such as `http://localhost:8080` and `http://127.0.0.1:8080` are allowed automatically.
 - Outside development, localhost origins are rejected.
 - Unknown origins are rejected.
 
@@ -206,6 +243,10 @@ Cloud Build pipeline at `cloudbuild.yaml` performs equivalent build and deploy w
 
 1. Startup fails due to missing env vars:
 	- Run `npm run check:env`.
+2. Cloud Build fails before deploy:
+	- Ensure `database-url`, `jwt-secret`, `session-secret`, `encryption-key`, `google-client-id`, `google-client-secret`, and `mcp-api-key` exist in Secret Manager.
+3. Cloud Run container exits immediately:
+	- Verify `GOOGLE_REDIRECT_URI`, `GCP_PROJECT_ID`, `GCP_REGION`, and `GCP_SERVICE_NAME` are passed in Cloud Build substitutions/env vars.
 2. OAuth callback errors:
 	- Verify redirect URI and client credentials.
 3. 429/quota errors:
@@ -230,10 +271,10 @@ npm test
 Run production smoke checks:
 
 ```bash
-bash scripts/production-check.sh http://localhost:3000
+bash scripts/production-check.sh http://localhost:8080
 ```
 
 ## Checklists
 
-- Deployment checklist: `docs/deployment-checklist.md`
-- Production checklist: `docs/production-checklist.md`
+- Deployment guide: `DEPLOYMENT.md`
+- Production checklist: `PRODUCTION_CHECKLIST.md`

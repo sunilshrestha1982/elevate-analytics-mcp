@@ -21,13 +21,13 @@ describe('security middleware origin handling', () => {
 
   it('allows localhost origins in development', () => {
     const allowed = parseAllowedOrigins('https://app.example.com');
-    expect(isOriginAllowed('http://localhost:3000', allowed, 'development')).toBe(true);
+    expect(isOriginAllowed('http://localhost:8080', allowed, 'development')).toBe(true);
     expect(isOriginAllowed('http://127.0.0.1:5173', allowed, 'development')).toBe(true);
   });
 
   it('rejects localhost origins outside development', () => {
-    const allowed = parseAllowedOrigins('https://app.example.com,http://localhost:3000');
-    expect(isOriginAllowed('http://localhost:3000', allowed, 'production')).toBe(false);
+    const allowed = parseAllowedOrigins('https://app.example.com,http://localhost:8080');
+    expect(isOriginAllowed('http://localhost:8080', allowed, 'production')).toBe(false);
   });
 
   it('allows requests without an origin header', () => {

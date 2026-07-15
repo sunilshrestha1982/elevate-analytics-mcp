@@ -16,7 +16,7 @@ import { createLogger } from './logger.js';
 import { applySecurityMiddleware } from '../middleware/security.js';
 import { createMcpApiKeyAuthMiddleware } from '../middleware/mcpApiKeyAuth.js';
 import { getMetricsRegistry, observeRequestDuration } from '../lib/metrics.js';
-import { env } from '../config/env.js';
+import { getEnv } from '../config/env.js';
 import { getPinoLogger } from '../lib/logger.js';
 import { extractTraceContextFromHeaders, getTracer } from '../lib/tracing.js';
 import { context, trace } from '@opentelemetry/api';
@@ -104,9 +104,10 @@ export function createMcpApp(options: { name?: string; version?: string } = {}) 
   app.get('/version', (_req, res) => res.json({ name: options.name ?? 'elevate-analytics-mcp', version: options.version ?? '0.1.0' }));
   app.get('/ready', (_req, res) => res.json({ ready: true }));
   app.get('/metrics', async (req, res) => {
-    if (env.METRICS_AUTH_TOKEN) {
+    const metricsAuthToken = getEnv().METRICS_AUTH_TOKEN;
+    if (metricsAuthToken) {
       const auth = req.get('authorization')?.replace(/^Bearer\s+/i, '');
-      if (auth !== env.METRICS_AUTH_TOKEN) {
+      if (auth !== metricsAuthToken) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
     }

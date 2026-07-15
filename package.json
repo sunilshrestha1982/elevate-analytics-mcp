@@ -12,7 +12,7 @@
     "start": "node dist/server.js",
     "check:env": "node scripts/check-env.mjs",
     "docker:build": "docker build -t elevate-analytics-mcp:local .",
-    "docker:run": "docker run --rm -p 3000:3000 --env-file .env elevate-analytics-mcp:local",
+    "docker:run": "docker run --rm -p 8080:8080 --env-file .env elevate-analytics-mcp:local",
     "deploy:cloudrun": "bash scripts/deploy-cloud-run.sh",
     "deploy": "bash deploy.sh",
     "rollback": "bash rollback.sh",

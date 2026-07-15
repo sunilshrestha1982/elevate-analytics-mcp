@@ -25,7 +25,7 @@ describe('OAuthService', () => {
     vi.restoreAllMocks();
     vi.stubEnv('GOOGLE_CLIENT_ID', 'client-id');
     vi.stubEnv('GOOGLE_CLIENT_SECRET', 'client-secret');
-    vi.stubEnv('GOOGLE_REDIRECT_URI', 'http://localhost:3000/oauth/google/callback');
+    vi.stubEnv('GOOGLE_REDIRECT_URI', 'http://localhost:8080/oauth/google/callback');
     vi.stubEnv('JWT_SECRET', '12345678901234567890123456789012');
     vi.stubEnv('SESSION_SECRET', '12345678901234567890123456789012');
     vi.stubEnv('ENCRYPTION_KEY', '12345678901234567890123456789012');

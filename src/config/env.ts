@@ -19,12 +19,17 @@ const optionalApiKeySchema = z.preprocess(
   z.string().min(24).optional(),
 );
 
+const optionalDatabaseUrlSchema = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  databaseUrlSchema.optional(),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
-  PORT: z.coerce.number().default(3000),
+  PORT: z.coerce.number().int().positive().default(8080),
   APP_VERSION: z.string().default('0.1.0'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-  ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
+  ALLOWED_ORIGINS: z.string().default('http://localhost:8080'),
   COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).default('lax'),
   COOKIE_SECURE_OVERRIDE: z.union([z.literal('true'), z.literal('false')]).transform((value) => value === 'true').optional(),
   TRUST_PROXY: z.union([z.literal('true'), z.literal('false')]).transform((value) => value === 'true').default('true'),
@@ -40,7 +45,7 @@ const envSchema = z.object({
   GCP_SERVICE_NAME: optionalStringSchema,
   GOOGLE_CLOUD_RUN_URL: optionalStringSchema,
   GOOGLE_SECRET_PREFIX: optionalStringSchema,
-  DATABASE_URL: databaseUrlSchema,
+  DATABASE_URL: optionalDatabaseUrlSchema,
   GOOGLE_API_KEY: optionalStringSchema,
   GOOGLE_CLIENT_ID: optionalStringSchema,
   GOOGLE_CLIENT_SECRET: optionalStringSchema,
@@ -50,12 +55,16 @@ const envSchema = z.object({
   ENCRYPTION_KEY: optionalSecretSchema,
 });
 
-export const env = envSchema.parse(process.env);
+export type Env = z.infer<typeof envSchema>;
 
-export const getEnv = () => {
+export const getEnv = (): Env => {
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
-    throw new Error(parsed.error.message);
+    const issues = parsed.error.issues.map((issue) => {
+      const key = issue.path.join('.') || 'environment';
+      return `${key}: ${issue.message}`;
+    });
+    throw new Error(`Environment validation failed:\n- ${issues.join('\n- ')}`);
   }
   return parsed.data;
 };
@@ -63,7 +72,7 @@ export const getEnv = () => {
 export const validateRequiredEnvOnStartup = () => {
   const parsed = getEnv();
 
-  const requiredInAllEnvs = ['DATABASE_URL'] as const;
+  const requiresDatabaseUrl = parsed.NODE_ENV !== 'test';
   const requiredInProduction = [
     'JWT_SECRET',
     'SESSION_SECRET',
@@ -78,9 +87,10 @@ export const validateRequiredEnvOnStartup = () => {
   ] as const;
 
   const missing: string[] = [];
-  for (const key of requiredInAllEnvs) {
-    if (!parsed[key]) missing.push(key);
+  if (requiresDatabaseUrl && !parsed.DATABASE_URL) {
+    missing.push('DATABASE_URL');
   }
+
   if (parsed.NODE_ENV === 'production' || parsed.NODE_ENV === 'staging') {
     for (const key of requiredInProduction) {
       if (!parsed[key]) missing.push(key);
@@ -88,7 +98,10 @@ export const validateRequiredEnvOnStartup = () => {
   }
 
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required environment variables for ${parsed.NODE_ENV}: ${missing.join(', ')}. ` +
+      'Provide runtime env vars with Cloud Run --set-env-vars and secrets with --set-secrets.',
+    );
   }
 
   return parsed;

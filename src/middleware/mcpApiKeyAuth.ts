@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { timingSafeEqual } from 'node:crypto';
-import { env } from '../config/env.js';
+import { getEnv } from '../config/env.js';
 
 const PUBLIC_PATHS = new Set(['/health', '/ready', '/live', '/version']);
 
@@ -21,7 +21,7 @@ export const createMcpApiKeyAuthMiddleware = () => {
       return next();
     }
 
-    const expectedKey = env.MCP_API_KEY;
+    const expectedKey = getEnv().MCP_API_KEY;
     const providedKey = getApiKey(req);
 
     if (!expectedKey || !providedKey || !secureEquals(providedKey, expectedKey)) {

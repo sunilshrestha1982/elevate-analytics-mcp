@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${1:-http://localhost:3000}"
+BASE_URL="${1:-http://localhost:8080}"
 
 echo "Checking live endpoint"
 curl -fsS "${BASE_URL}/live" >/dev/null

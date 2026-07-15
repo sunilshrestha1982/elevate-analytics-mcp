@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { healthRouter } from './routes/health.js';
 import { userRouter } from './routes/users.js';
 import { oauthRouter } from './routes/oauth.js';
-import { env, validateRequiredEnvOnStartup } from './config/env.js';
+import { getEnv, validateRequiredEnvOnStartup } from './config/env.js';
 import { getPinoLogger, logger } from './lib/logger.js';
 import { getMetricsRegistry, getNodeStatsSnapshot, observeRequestDuration } from './lib/metrics.js';
 import { applySecurityMiddleware } from './middleware/security.js';
@@ -20,7 +20,8 @@ import { extractTraceContextFromHeaders, getTracer } from './lib/tracing.js';
 import { context, trace } from '@opentelemetry/api';
 
 dotenv.config();
-validateRequiredEnvOnStartup();
+const env = validateRequiredEnvOnStartup();
+const host = '0.0.0.0';
 
 const app = express();
 const tracer = getTracer('http-server');
@@ -94,8 +95,7 @@ app.get('/ready', async (_req, res) => {
 });
 
 app.get('/live', async (_req, res) => {
-  const health = await systemHealthService.getHealth();
-  res.status(health.status === 'healthy' ? 200 : 503).json(health);
+  res.status(200).json({ status: 'alive' });
 });
 
 app.get('/version', (_req, res) => {
@@ -107,9 +107,10 @@ app.get('/version', (_req, res) => {
 });
 
 app.get('/metrics', async (req, res) => {
-  if (env.METRICS_AUTH_TOKEN) {
+  const metricsAuthToken = getEnv().METRICS_AUTH_TOKEN;
+  if (metricsAuthToken) {
     const auth = req.get('authorization')?.replace(/^Bearer\s+/i, '');
-    if (auth !== env.METRICS_AUTH_TOKEN) {
+    if (auth !== metricsAuthToken) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
   }
@@ -135,8 +136,9 @@ app.use((error: unknown, req: Request, res: express.Response, _next: express.Nex
   res.status(500).json({ error: 'Internal Server Error', errorId });
 });
 
-const server = app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, host, () => {
   logger.info('Server listening', {
+    host,
     port: env.PORT,
     nodeEnv: env.NODE_ENV,
     trustProxy: env.TRUST_PROXY,

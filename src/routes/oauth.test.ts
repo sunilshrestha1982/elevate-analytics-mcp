@@ -30,7 +30,7 @@ describe('oauth routes', () => {
 
   it('routes logout requests through the service', async () => {
     const logoutSpy = vi.spyOn(oauthService, 'logout').mockResolvedValue(undefined as never);
-    const req: any = { method: 'POST', url: '/logout', body: {}, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : undefined) };
+    const req: any = { method: 'POST', url: '/logout', body: {}, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:8080' : undefined) };
     const res = mockRes();
 
     (oauthRouter as any).handle(req, res, vi.fn());
@@ -53,7 +53,7 @@ describe('oauth routes', () => {
   it('handles disconnect requests with a user id', async () => {
     const disconnectSpy = vi.spyOn(oauthService, 'disconnect').mockResolvedValue({ success: true } as any);
     const token = jwt.sign({ sub: 1, email: 'a@example.com' }, '12345678901234567890123456789012', { algorithm: 'HS256', issuer: 'elevate-analytics-mcp', audience: 'elevate-analytics-mcp' });
-    const req: any = { method: 'POST', url: '/disconnect', body: { googleAccountId: '4' }, cookies: { auth_token: token }, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : undefined) };
+    const req: any = { method: 'POST', url: '/disconnect', body: { googleAccountId: '4' }, cookies: { auth_token: token }, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:8080' : undefined) };
     const res = mockRes();
 
     (oauthRouter as any).handle(req, res, vi.fn());
@@ -65,7 +65,7 @@ describe('oauth routes', () => {
 
   it('rejects disconnect requests missing account identifiers', async () => {
     const token = jwt.sign({ sub: 1, email: 'a@example.com' }, '12345678901234567890123456789012', { algorithm: 'HS256', issuer: 'elevate-analytics-mcp', audience: 'elevate-analytics-mcp' });
-    const req: any = { method: 'POST', url: '/disconnect', body: {}, cookies: { auth_token: token }, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : undefined) };
+    const req: any = { method: 'POST', url: '/disconnect', body: {}, cookies: { auth_token: token }, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:8080' : undefined) };
     const res = mockRes();
 
     (oauthRouter as any).handle(req, res, vi.fn());
@@ -89,7 +89,7 @@ describe('oauth routes', () => {
   it('returns a 500 error when disconnecting fails', async () => {
     vi.spyOn(oauthService, 'disconnect').mockRejectedValue(new Error('boom'));
     const token = jwt.sign({ sub: 1, email: 'a@example.com' }, '12345678901234567890123456789012', { algorithm: 'HS256', issuer: 'elevate-analytics-mcp', audience: 'elevate-analytics-mcp' });
-    const req: any = { method: 'POST', url: '/disconnect', body: { googleAccountId: '4' }, cookies: { auth_token: token }, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : undefined) };
+    const req: any = { method: 'POST', url: '/disconnect', body: { googleAccountId: '4' }, cookies: { auth_token: token }, protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:8080' : undefined) };
     const res = mockRes();
 
     (oauthRouter as any).handle(req, res, vi.fn());

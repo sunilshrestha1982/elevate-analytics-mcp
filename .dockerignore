@@ -9,9 +9,15 @@ coverage
 !.env.example
 *.log
 npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+*.tsbuildinfo
 docker-compose*.yml
 .DS_Store
 .vscode
 docs
 terraform
 phase10-review-bundle.zip
+SECURITY_REPORT.md
+PRODUCTION_CHECKLIST.md
+RELEASE_NOTES.md

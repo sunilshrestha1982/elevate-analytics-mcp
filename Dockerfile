@@ -1,4 +1,4 @@
-FROM base AS runner
+FROM node:22-bookworm-slim AS base
 WORKDIR /app
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
@@ -18,7 +18,7 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
 
-FROM node:22-bookworm-slim AS runner
+FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080

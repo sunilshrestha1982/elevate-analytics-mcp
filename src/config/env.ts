@@ -79,7 +79,6 @@ export const validateRequiredEnvOnStartup = () => {
     'ENCRYPTION_KEY',
     'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',
-    'GOOGLE_REDIRECT_URI',
     'MCP_API_KEY',
     'GCP_PROJECT_ID',
     'GCP_REGION',

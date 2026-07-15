@@ -28,6 +28,11 @@ const requestDurationMs = getOrCreateHistogram('elevate_http_request_duration_ms
   buckets: [5, 25, 50, 100, 250, 500, 1000, 2000, 5000],
 });
 
+const requestCountTotal = getOrCreateCounter('elevate_http_requests_total', {
+  help: 'Total HTTP requests by method, route, and status code',
+  labelNames: ['method', 'route', 'status_code'],
+});
+
 const googleApiLatencyMs = getOrCreateHistogram('elevate_google_api_latency_ms', {
   help: 'Google API request latency in milliseconds',
   labelNames: ['api', 'operation', 'status_code'],
@@ -80,11 +85,17 @@ const processUptimeSeconds = getOrCreateGauge('elevate_process_uptime_seconds', 
   help: 'Node.js process uptime in seconds',
 });
 
+const nodeVersionInfo = getOrCreateGauge('elevate_nodejs_version_info', {
+  help: 'Node.js runtime version information',
+  labelNames: ['version'],
+});
+
 let lastCpu = process.cpuUsage();
 const cacheStats = new Map<string, { hit: number; miss: number }>();
 
 export function observeRequestDuration(method: string, route: string, statusCode: number, durationMs: number) {
   requestDurationMs.labels(method, route, String(statusCode)).observe(durationMs);
+  requestCountTotal.labels(method, route, String(statusCode)).inc();
 }
 
 export function observeGoogleApiLatency(api: string, operation: string, statusCode: number, durationMs: number) {
@@ -125,6 +136,7 @@ export function updateProcessResourceMetrics() {
   processCpuSeconds.labels('user').inc(cpu.user / 1_000_000);
   processCpuSeconds.labels('system').inc(cpu.system / 1_000_000);
   processUptimeSeconds.set(process.uptime());
+  nodeVersionInfo.labels(process.version).set(1);
 }
 
 setInterval(() => {

@@ -61,7 +61,7 @@ steps:
       - --region=${_REGION}
       - --platform=${_PLATFORM}
       - --port=8080
-      - --set-env-vars=^~^NODE_ENV=production~PORT=8080~GCP_PROJECT_ID=$PROJECT_ID~GCP_REGION=${_REGION}~GCP_SERVICE_NAME=${_SERVICE_NAME}~GOOGLE_REDIRECT_URI=${_GOOGLE_REDIRECT_URI}~ALLOWED_ORIGINS=${_ALLOWED_ORIGINS}
+      - --set-env-vars=^~^NODE_ENV=production~GCP_PROJECT_ID=$PROJECT_ID~GCP_REGION=${_REGION}~GCP_SERVICE_NAME=${_SERVICE_NAME}~GOOGLE_REDIRECT_URI=${_GOOGLE_REDIRECT_URI}~ALLOWED_ORIGINS=${_ALLOWED_ORIGINS}
       - --set-secrets=${_SECRETS}
       - --no-allow-unauthenticated
 

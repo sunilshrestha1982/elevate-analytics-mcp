@@ -32,6 +32,11 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
       email: string;
       googleUserId?: string;
     };
+
+    if (!Number.isInteger(verified.sub) || verified.sub <= 0 || typeof verified.email !== 'string' || verified.email.length < 3) {
+      throw new Error('JWT payload is malformed');
+    }
+
     req.user = verified;
     req.auth = {
       userId: verified.sub,
@@ -47,10 +52,19 @@ export const requireAuth = (req: AuthenticatedRequest, res: Response, next: Next
 };
 
 export const requireSameSiteOrigin = (req: Request, res: Response, next: NextFunction) => {
+  const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
+  if (safeMethods.has(req.method.toUpperCase())) {
+    return next();
+  }
+
   const origin = req.get('origin');
   const referer = req.get('referer');
 
   if (!origin && !referer) {
+    const nodeEnv = getEnv().NODE_ENV;
+    if (nodeEnv === 'production' || nodeEnv === 'staging') {
+      return res.status(403).json({ error: 'Missing origin metadata' });
+    }
     return next();
   }
 

@@ -29,12 +29,12 @@ describe('MCP server', () => {
 
   it('protects MCP endpoints with API key when MCP_API_KEY is configured', async () => {
     vi.resetModules();
-    vi.stubEnv('MCP_API_KEY', 'test-mcp-key-1234567890');
+    vi.stubEnv('MCP_API_KEY', 'test-mcp-key-1234567890-ab');
     const { createMcpApp } = await import('./server.js');
     const { app } = createMcpApp();
 
     const unauthorized = await request(app).get('/mcp');
-    const authorized = await request(app).get('/mcp').set('x-api-key', 'test-mcp-key-1234567890');
+    const authorized = await request(app).get('/mcp').set('x-api-key', 'test-mcp-key-1234567890-ab');
 
     expect(unauthorized.status).toBe(401);
     expect(authorized.status).toBe(200);

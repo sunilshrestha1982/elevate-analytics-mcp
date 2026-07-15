@@ -64,8 +64,7 @@ describe('OAuthService', () => {
       updatedAt: new Date(),
     };
 
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue(session as any);
-    vi.spyOn(databaseService.oauthSessionRepository, 'delete').mockResolvedValue(session as any);
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue(session as any);
     vi.spyOn(databaseService.googleAccountRepository, 'findByGoogleUserId').mockResolvedValue(null);
     vi.spyOn(databaseService.userRepository, 'create').mockResolvedValue({ id: 10, email: 'user@example.com' } as any);
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
@@ -85,7 +84,7 @@ describe('OAuthService', () => {
 
   it('rejects invalid state', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue(null);
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue(null);
 
     await oauthService.callback({ query: { code: 'auth-code', state: 'bad' } } as any, res);
 
@@ -95,7 +94,7 @@ describe('OAuthService', () => {
 
   it('rejects expired state', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue({
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue({
       id: 1,
       state: 'abc',
       codeVerifier: 'verifier',
@@ -112,7 +111,7 @@ describe('OAuthService', () => {
 
   it('rejects invalid PKCE', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue({
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue({
       id: 1,
       state: 'abc',
       codeVerifier: null,
@@ -163,7 +162,7 @@ describe('OAuthService', () => {
 
   it('returns an auth error when token data is missing', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue({
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue({
       id: 1,
       state: 'abc',
       codeVerifier: 'verifier',
@@ -181,7 +180,7 @@ describe('OAuthService', () => {
 
   it('returns an auth error when profile lookup fails', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue({
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue({
       id: 1,
       state: 'abc',
       codeVerifier: 'verifier',
@@ -199,7 +198,7 @@ describe('OAuthService', () => {
 
   it('returns an auth error when profile data is incomplete', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue({
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue({
       id: 1,
       state: 'abc',
       codeVerifier: 'verifier',
@@ -217,7 +216,7 @@ describe('OAuthService', () => {
 
   it('returns a generic error when callback processing throws', async () => {
     const res = mockRes();
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockRejectedValue(new Error('boom'));
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockRejectedValue(new Error('boom'));
 
     await oauthService.callback({ query: { code: 'auth-code', state: 'abc' } } as any, res);
 
@@ -236,8 +235,7 @@ describe('OAuthService', () => {
       updatedAt: new Date(),
     };
 
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue(session as any);
-    vi.spyOn(databaseService.oauthSessionRepository, 'delete').mockResolvedValue(session as any);
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue(session as any);
     vi.spyOn(databaseService.googleAccountRepository, 'findByGoogleUserId').mockResolvedValue({
       id: 9,
       userId: 11,
@@ -265,8 +263,7 @@ describe('OAuthService', () => {
       updatedAt: new Date(),
     };
 
-    vi.spyOn(databaseService.oauthSessionRepository, 'findByState').mockResolvedValue(session as any);
-    vi.spyOn(databaseService.oauthSessionRepository, 'delete').mockResolvedValue(session as any);
+    vi.spyOn(databaseService.oauthSessionRepository, 'consumeByState').mockResolvedValue(session as any);
     vi.spyOn(databaseService.googleAccountRepository, 'findByGoogleUserId').mockResolvedValue({
       id: 9,
       userId: 11,

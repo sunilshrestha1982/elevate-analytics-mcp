@@ -37,37 +37,39 @@ describe('auth middleware', () => {
   it('allows same-site origin', () => {
     const res = mockRes();
     const next = vi.fn();
-    requireSameSiteOrigin({ protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : 'http://localhost:3000') } as any, res as any, next);
+    requireSameSiteOrigin({ method: 'POST', protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : 'http://localhost:3000') } as any, res as any, next);
     expect(next).toHaveBeenCalled();
   });
 
   it('rejects cross-origin requests', () => {
     const res = mockRes();
     const next = vi.fn();
-    requireSameSiteOrigin({ protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : 'https://evil.example') } as any, res as any, next);
+    requireSameSiteOrigin({ method: 'POST', protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : 'https://evil.example') } as any, res as any, next);
     expect(res.status).toHaveBeenCalledWith(403);
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('allows a referer-based same-site request', () => {
+  it('rejects missing origin metadata for non-safe methods in production', () => {
     const res = mockRes();
     const next = vi.fn();
-    requireSameSiteOrigin({ protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : null) } as any, res as any, next);
-    expect(next).toHaveBeenCalled();
+    vi.stubEnv('NODE_ENV', 'production');
+    requireSameSiteOrigin({ method: 'POST', protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : null) } as any, res as any, next);
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
   });
 
   it('rejects invalid origin values', () => {
     const res = mockRes();
     const next = vi.fn();
-    requireSameSiteOrigin({ protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : 'not-a-url') } as any, res as any, next);
+    requireSameSiteOrigin({ method: 'POST', protocol: 'http', get: (name: string) => (name === 'host' ? 'localhost:3000' : 'not-a-url') } as any, res as any, next);
     expect(res.status).toHaveBeenCalledWith(403);
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('allows requests with no origin or referer metadata', () => {
+  it('allows safe methods with no origin metadata', () => {
     const res = mockRes();
     const next = vi.fn();
-    requireSameSiteOrigin({ protocol: 'http', get: () => null } as any, res as any, next);
+    requireSameSiteOrigin({ method: 'GET', protocol: 'http', get: () => null } as any, res as any, next);
     expect(next).toHaveBeenCalled();
   });
 

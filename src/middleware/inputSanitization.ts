@@ -9,7 +9,12 @@ function sanitizeValue(value: unknown): unknown {
   }
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>;
-    return Object.fromEntries(Object.entries(record).map(([k, v]) => [k, sanitizeValue(v)]));
+    const blockedKeys = new Set(['__proto__', 'prototype', 'constructor']);
+    return Object.fromEntries(
+      Object.entries(record)
+        .filter(([k]) => !blockedKeys.has(k))
+        .map(([k, v]) => [k, sanitizeValue(v)])
+    );
   }
   return value;
 }

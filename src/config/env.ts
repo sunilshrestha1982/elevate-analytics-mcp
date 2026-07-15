@@ -11,7 +11,12 @@ const optionalStringSchema = z.preprocess(
 
 const optionalSecretSchema = z.preprocess(
   (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
-  z.string().min(16).optional(),
+  z.string().min(32).optional(),
+);
+
+const optionalApiKeySchema = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().min(24).optional(),
 );
 
 const envSchema = z.object({
@@ -28,8 +33,8 @@ const envSchema = z.object({
   REDIS_URL: optionalStringSchema,
   OTEL_ENABLED: z.union([z.literal('true'), z.literal('false')]).transform((value) => value === 'true').default('false'),
   OTEL_SERVICE_NAME: optionalStringSchema,
-  MCP_API_KEY: optionalStringSchema,
-  METRICS_AUTH_TOKEN: optionalStringSchema,
+  MCP_API_KEY: optionalApiKeySchema,
+  METRICS_AUTH_TOKEN: optionalApiKeySchema,
   GCP_PROJECT_ID: optionalStringSchema,
   GCP_REGION: optionalStringSchema,
   GCP_SERVICE_NAME: optionalStringSchema,

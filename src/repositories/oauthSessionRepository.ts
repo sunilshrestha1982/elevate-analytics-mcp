@@ -23,6 +23,18 @@ export class OAuthSessionRepository {
     }
   }
 
+  async consumeByState(state: string): Promise<OAuthSession | null> {
+    try {
+      return await prisma.oAuthSession.delete({ where: { state } });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        return null;
+      }
+      logger.error('Failed to consume OAuth session', error);
+      throw error;
+    }
+  }
+
   async delete(id: number): Promise<OAuthSession> {
     try {
       return await prisma.oAuthSession.delete({ where: { id } });

@@ -84,7 +84,7 @@ export class OAuthService {
         }
 
       const { code, state } = parsed.data;
-      const session = await databaseService.oauthSessionRepository.findByState(state);
+      const session = await databaseService.oauthSessionRepository.consumeByState(state);
       if (!session || session.expiresAt < new Date()) {
         return res.status(400).json({ error: 'Invalid or expired OAuth state' });
       }
@@ -119,7 +119,11 @@ export class OAuthService {
         return res.status(502).json({ error: 'Authentication provider error' });
       }
 
-      const userInfoResponse = await fetch(`${GOOGLE_USERINFO_URL}?access_token=${encodeURIComponent(tokenData.access_token)}`);
+      const userInfoResponse = await fetch(GOOGLE_USERINFO_URL, {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      });
       if (!userInfoResponse.ok) {
         logger.warn('Google profile lookup failed', { status: userInfoResponse.status });
         return res.status(502).json({ error: 'Authentication provider error' });
@@ -174,10 +178,14 @@ export class OAuthService {
         });
       }
 
-      await databaseService.oauthSessionRepository.delete(session.id);
-
       const jwtPayload = { sub: persistedUser.id, email: persistedUser.email, googleUserId };
-      const token = jwt.sign(jwtPayload, config.JWT_SECRET as string, { algorithm: 'HS256', expiresIn: '1h', issuer: 'elevate-analytics-mcp', audience: 'elevate-analytics-mcp' });
+      const token = jwt.sign(jwtPayload, config.JWT_SECRET as string, {
+        algorithm: 'HS256',
+        expiresIn: '1h',
+        issuer: 'elevate-analytics-mcp',
+        audience: 'elevate-analytics-mcp',
+        jwtid: crypto.randomUUID(),
+      });
 
       res.cookie('auth_token', token, createAuthCookieOptions());
         logger.info('OAuth login succeeded', { userId: persistedUser.id, googleUserId });

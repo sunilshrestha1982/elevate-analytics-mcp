@@ -11,17 +11,21 @@ export function parseAllowedOrigins(value: string) {
   return value
     .split(',')
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter((item) => item.length > 0 && item !== '*');
 }
 
 export function isOriginAllowed(origin: string | undefined, allowedOrigins: string[], nodeEnv: string) {
   if (!origin) return true;
 
-  if (allowedOrigins.includes(origin)) return true;
-
   if (nodeEnv === 'development' && localhostPattern.test(origin)) {
     return true;
   }
+
+  if (localhostPattern.test(origin)) {
+    return false;
+  }
+
+  if (allowedOrigins.includes(origin)) return true;
 
   return false;
 }

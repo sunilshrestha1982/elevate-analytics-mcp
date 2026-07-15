@@ -184,8 +184,10 @@ Optional but recommended:
 ## CORS Configuration
 
 - `ALLOWED_ORIGINS` accepts a comma-separated list of browser origins.
+- Wildcard origins such as `*` are ignored and never allowed.
 - In development, localhost origins such as `http://localhost:3000` and `http://127.0.0.1:3000` are allowed automatically.
-- In production, unknown origins are rejected.
+- Outside development, localhost origins are rejected.
+- Unknown origins are rejected.
 
 ## CI/CD
 

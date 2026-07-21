@@ -6,6 +6,7 @@
   "description": "Production-ready analytics + MCP platform with Cloud Run deployment support",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "start:mcp": "node dist/mcp/main.js",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
